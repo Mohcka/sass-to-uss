@@ -1,0 +1,13 @@
+{
+  "name": "com.mohcka.sasstouss",
+  "version": "1.0.0",
+  "displayName": "SASS to USS",
+  "description": "Converts SCSS files to USS files for Unity UI Toolkit.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "keywords": ["sass", "scss", "uss", "ui-toolkit"],
+  "author": {
+    "name": "Mohcka",
+    "email": "MohckaMas@proton.me"
+  }
+}
