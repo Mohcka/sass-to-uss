@@ -13,7 +13,7 @@ A Unity tool that watches SCSS files and compiles them to USS files for UI Toolk
 5. Click "Add"
 6. Access the tool via Tools > SASS to USS
 
-## Building the SASS to USS Executable
+## Building the SASS to USS Executable (Optional)
 
 1. Install Deno: https://deno.land/
 2. Navigate to the Tools/sass-to-uss folder
