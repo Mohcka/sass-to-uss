@@ -6,12 +6,14 @@ A Unity tool that watches SCSS files and compiles them to USS files for UI Toolk
 
 ## Installation
 
-1. Import this package into your Unity project
-2. Access the tool via Tools > SASS to USS
+1. Open Unity Package Manager
+2. Click the "+" button in the top-left corner
+3. Select "Add package from git URL"
+4. Enter the git URL: `https://github.com/Mohcka/sass-to-uss.git`
+5. Click "Add"
+6. Access the tool via Tools > SASS to USS
 
 ## Building the SASS to USS Executable
-
-If you need to rebuild the executable:
 
 1. Install Deno: https://deno.land/
 2. Navigate to the Tools/sass-to-uss folder
