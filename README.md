@@ -2,6 +2,8 @@
 
 A Unity tool that watches SCSS files and compiles them to USS files for UI Toolkit.
 
+##### Currently only works on Windows
+
 ## Installation
 
 1. Import this package into your Unity project
