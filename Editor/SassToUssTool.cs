@@ -307,7 +307,7 @@ namespace Mohcka.SassToUss.Editor
             // Start process with the --once flag
             Process process = new Process();
             process.StartInfo.FileName = executablePath;
-            process.StartInfo.Arguments = $"--once \"{denoPath}\""; 
+            process.StartInfo.Arguments = $"\"{denoPath}\" --once"; // Put directory first, then flag
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
