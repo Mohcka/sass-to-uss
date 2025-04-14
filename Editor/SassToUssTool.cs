@@ -17,6 +17,7 @@ namespace Mohcka.SassToUss.Editor
         // UI Elements
         private TextField directoryField;
         private Button convertButton;
+        private Button convertOnceButton;
         private ScrollView logScrollView;
         private string logOutput = "";
 
@@ -39,6 +40,7 @@ namespace Mohcka.SassToUss.Editor
 
             // Register event handlers
             convertButton.clicked += ToggleConverting;
+            convertOnceButton.clicked += ConvertOnce;
         }
 
         private void CreateUIElements()
@@ -71,12 +73,26 @@ namespace Mohcka.SassToUss.Editor
             browseButton.style.marginLeft = 5;
             directoryContainer.Add(browseButton);
 
-            // Add button
+            // Create button container for better layout
+            VisualElement buttonContainer = new VisualElement();
+            buttonContainer.style.flexDirection = FlexDirection.Row;
+            buttonContainer.style.marginBottom = 15;
+            root.Add(buttonContainer);
+
+            // Move convert button to container
             convertButton = new Button();
-            convertButton.text = "Start Converting";
+            convertButton.text = "Start Watch";
             convertButton.style.height = 30;
-            convertButton.style.marginBottom = 15;
-            root.Add(convertButton);
+            convertButton.style.flexGrow = 1;
+            buttonContainer.Add(convertButton);
+
+            // Add manual convert button
+            convertOnceButton = new Button();
+            convertOnceButton.text = "Convert Now";
+            convertOnceButton.style.height = 30;
+            convertOnceButton.style.marginLeft = 5;
+            convertOnceButton.style.flexGrow = 1;
+            buttonContainer.Add(convertOnceButton);
 
             // Add log output section
             Label logLabel = new Label("Log Output:");
@@ -231,6 +247,87 @@ namespace Mohcka.SassToUss.Editor
             isConverting = false;
             convertButton.text = "Start Converting";
             AddToLog("Stopped converting");
+        }
+
+        private void ConvertOnce()
+        {
+            // Find our package location using a marker script in the Editor folder
+            string scriptPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(this));
+            string packageRootPath = Path.GetDirectoryName(Path.GetDirectoryName(scriptPath));
+            
+            // Path is now relative to package location
+            string executableRelativePath = "Tools/sass-to-uss/sass-to-uss.exe";
+            string executablePath = Path.Combine(packageRootPath, executableRelativePath);
+            executablePath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", executablePath));
+            
+            // Ensure executable exists
+            if (!File.Exists(executablePath))
+            {
+                UnityEngine.Debug.LogError($"Executable not found: {executablePath}");
+                AddToLog($"ERROR: Executable not found: {executablePath}");
+                return;
+            }
+            
+            // Create a proper absolute path that works with external processes
+            string projectPath = Path.GetDirectoryName(Application.dataPath);
+            string fullDirectoryPath = Path.GetFullPath(Path.Combine(projectPath, sassDirectory));
+            
+            // Convert backslashes to forward slashes for Deno
+            string denoPath = fullDirectoryPath.Replace("\\", "/");
+            
+            // Check if directory exists
+            if (!Directory.Exists(fullDirectoryPath))
+            {
+                try {
+                    Directory.CreateDirectory(fullDirectoryPath);
+                    AddToLog($"Created directory: {fullDirectoryPath}");
+                } catch (Exception ex) {
+                    AddToLog($"ERROR: Failed to create directory: {ex.Message}");
+                    return;
+                }
+            }
+
+            // Start process with the --once flag
+            Process process = new Process();
+            process.StartInfo.FileName = executablePath;
+            process.StartInfo.Arguments = $"--once \"{denoPath}\""; 
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    UnityEngine.Debug.Log($"[SASS to USS] {e.Data}");
+                    AddToLog(e.Data);
+                }
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    UnityEngine.Debug.LogError($"[SASS to USS] {e.Data}");
+                    AddToLog("ERROR: " + e.Data);
+                }
+            };
+
+            process.EnableRaisingEvents = true;
+            process.Exited += (sender, e) => 
+            {
+                rootVisualElement.schedule.Execute(() => {
+                    AddToLog("Conversion completed");
+                    // Refresh asset database to show new/updated files
+                    AssetDatabase.Refresh();
+                });
+            };
+
+            AddToLog($"Converting files in: {fullDirectoryPath}");
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
         }
 
         private void AddToLog(string message)
