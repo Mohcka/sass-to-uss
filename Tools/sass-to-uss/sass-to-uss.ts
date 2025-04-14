@@ -20,6 +20,15 @@ function convertSassToCss(sassFilePath: string): void {
 const generateUss = debounce((event: Deno.FsEvent) => {
   // Check for both .scss and .sass files
   if (/\.(scss|sass)$/.test(event.paths[0]) && event.kind != 'remove') {
+    // Extract filename from path
+    const filename = event.paths[0].split(/[\/\\]/).pop() || "";
+    
+    // Skip files that start with underscore
+    if (filename.startsWith('_')) {
+      console.log(`Skipping partial file: ${filename}`);
+      return;
+    }
+    
     console.log("[%s] %s", event.kind, event.paths[0]);
     convertSassToCss(event.paths[0]);
   }
