@@ -58,14 +58,19 @@ const generateUss = debounce((event: Deno.FsEvent) => {
   if (/\.(scss|sass)$/.test(event.paths[0]) && event.kind != 'remove') {
     // Extract filename from path
     const filename = event.paths[0].split(/[\/\\]/).pop() || "";
+    const directory = event.paths[0].substring(0, event.paths[0].lastIndexOf('/') + 1);
     
-    // Skip files that start with underscore
+    console.log("[%s] %s", event.kind, event.paths[0]);
+    
+    // If it's a partial file, regenerate all non-partial files
     if (isPartial(filename)) {
-      console.log(`Skipping partial file: ${filename}`);
+      console.log(`Partial file changed: ${filename}. Regenerating all dependent files...`);
+      // Get the directory from the file path
+      convertAllFiles(directory.replace(/['"]/g, ''));
       return;
     }
     
-    console.log("[%s] %s", event.kind, event.paths[0]);
+    // For non-partial files, just compile the individual file
     convertSassToCss(event.paths[0]);
   }
 }, 200);
