@@ -1,6 +1,7 @@
 // Use URLImport to reference dependencies without relying on local installations
 import * as sass from "npm:sass@1.86.0"; // Lock to specific version
 import { debounce } from "jsr:@std/async/debounce"; // Lock to specific version
+import "npm:immutable@4.3.4"; // Add immutable dependency
 
 const encoder = new TextEncoder();
 
