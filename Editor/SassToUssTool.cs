@@ -10,8 +10,11 @@ namespace Mohcka.SassToUss.Editor
 {
     public class SassToUssTool : EditorWindow
     {
+        // Constants for EditorPrefs keys
+        private const string EDITOR_PREFS_DIRECTORY_KEY = "Mohcka.SassToUss.Directory";
+        
         private Process sassToUssProcess;
-        private string sassDirectory = "Assets/UI/Styles";
+        private string sassDirectory = "Assets/UI/Styles"; // Default value
         private bool isConverting = false;
 
         // UI Elements
@@ -31,16 +34,30 @@ namespace Mohcka.SassToUss.Editor
 
         public void CreateGUI()
         {
-            // Load and use the UXML file (optional - you can create one later)
-            // var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/SassToUssTool.uxml");
-            // if (visualTree != null)
-            //     visualTree.CloneTree(rootVisualElement);
-            // else
+            // Load saved directory path from EditorPrefs
+            LoadSavedDirectory();
+            
+            // Create UI Elements
             CreateUIElements();
 
             // Register event handlers
             convertButton.clicked += ToggleConverting;
             convertOnceButton.clicked += ConvertOnce;
+        }
+        
+        private void LoadSavedDirectory()
+        {
+            // Load the directory path from EditorPrefs if it exists
+            if (EditorPrefs.HasKey(EDITOR_PREFS_DIRECTORY_KEY))
+            {
+                sassDirectory = EditorPrefs.GetString(EDITOR_PREFS_DIRECTORY_KEY);
+            }
+        }
+        
+        private void SaveDirectory(string directory)
+        {
+            sassDirectory = directory;
+            EditorPrefs.SetString(EDITOR_PREFS_DIRECTORY_KEY, directory);
         }
 
         private void CreateUIElements()
@@ -63,7 +80,7 @@ namespace Mohcka.SassToUss.Editor
             // Add directory field to the container
             directoryField = new TextField("SCSS Directory:");
             directoryField.value = sassDirectory;
-            directoryField.RegisterValueChangedCallback(evt => sassDirectory = evt.newValue);
+            directoryField.RegisterValueChangedCallback(evt => SaveDirectory(evt.newValue));
             directoryField.style.flexGrow = 1; // Make it take available space
             directoryContainer.Add(directoryField);
 
@@ -137,8 +154,8 @@ namespace Mohcka.SassToUss.Editor
                 // Convert absolute path to be relative to Assets folder
                 string relativePath = "Assets" + selectedPath.Substring(assetsPath.Length).Replace("\\", "/");
                 
-                // Update both the field and the backing variable
-                sassDirectory = relativePath;
+                // Update both the field and save to EditorPrefs
+                SaveDirectory(relativePath);
                 directoryField.value = sassDirectory;
                 
                 AddToLog($"Directory set to: {sassDirectory}");
